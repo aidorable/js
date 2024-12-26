@@ -156,6 +156,7 @@ if (typeof window.DorableBoardWidget === 'undefined') {
             widget.style.borderRadius = '0px';
             widget.style.background = 'transparent';
             widget.style.backgroundColor = 'transparent';
+            widget.style.allow = 'clipboard-write sharing';
                     
             // Prevent page scrolling
             document.body.style.overflow = 'hidden';
