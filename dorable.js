@@ -1,3 +1,44 @@
+// Add storage helpers at the top
+function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days*24*60*60*1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+}
+
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for(let i=0;i < ca.length;i++) {
+        let c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1,c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+    }
+    return null;
+}
+
+function getStorageItem(key) {
+    try {
+        const value = localStorage.getItem(key);
+        if (value !== null) return value;
+    } catch {
+        // ignore
+    }
+    return getCookie(key);
+}
+
+function setStorageItem(key, value, days) {
+    try {
+        localStorage.setItem(key, value);
+    } catch {
+        // ignore
+    }
+    setCookie(key, value, days);
+}
+
 if (typeof window.DorableSurveyWidget === 'undefined') {
     class DorableSurveyWidget {
         constructor(config) {
@@ -19,8 +60,8 @@ if (typeof window.DorableSurveyWidget === 'undefined') {
                 }
             }
             
-            const lastCompleted = localStorage.getItem(`survey_${this.surveyId}_completed`);
-            const lastDismissed = localStorage.getItem(`survey_${this.surveyId}_dismissed`);
+            const lastCompleted = getStorageItem(`survey_${this.surveyId}_completed`);
+            const lastDismissed = getStorageItem(`survey_${this.surveyId}_dismissed`);
             
             if (lastCompleted && (Date.now() - new Date(lastCompleted).getTime()) < this.hideForNDaysAfterSubmit * 24 * 60 * 60 * 1000) {
                 return;
@@ -84,19 +125,19 @@ if (typeof window.DorableSurveyWidget === 'undefined') {
                     }
                 }
 
-                if (event.data.type === 'toggleMinimize' && localStorage.getItem(`survey_${this.surveyId}_completed`)) {
+                if (event.data.type === 'toggleMinimize' && getStorageItem(`survey_${this.surveyId}_completed`)) {
                     document.body.removeChild(widget);
                 }
 
                 if (event.data.type === 'close') {
                     document.body.removeChild(widget);
                     if (this.hideForNDaysAfterDismiss > 0) {
-                        localStorage.setItem(`survey_${this.surveyId}_dismissed`, new Date().toISOString());
+                        setStorageItem(`survey_${this.surveyId}_dismissed`, new Date().toISOString(), this.hideForNDaysAfterDismiss);
                     }
                 }
 
                 if (event.data.type === 'surveyCompleted') {
-                    localStorage.setItem(`survey_${this.surveyId}_completed`, new Date().toISOString());
+                    setStorageItem(`survey_${this.surveyId}_completed`, new Date().toISOString(), this.hideForNDaysAfterSubmit);
                 }
 
                 if (event.data.type === 'surveyLoaded') {
