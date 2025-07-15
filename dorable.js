@@ -89,7 +89,7 @@ if (typeof window.DorableSurveyWidget === 'undefined') {
             }
             
             if (this.userIdentifier) {
-                widgetUrl += (widgetUrl.includes('?') ? '&' : '?') + `user_identifier=${encodeURIComponent(this.userIdentifier)}`;
+                widgetUrl += (widgetUrl.includes('?') ? '&' : '?') + `user_identifier=${encodeURIComponent(this.userIdentifier)}&hide_for_n_days_after_submit=${this.hideForNDaysAfterSubmit}`;
             }
             widget.src = widgetUrl;
             
@@ -100,7 +100,7 @@ if (typeof window.DorableSurveyWidget === 'undefined') {
             widget.style.position = 'fixed';
             widget.style.zIndex = '9999';
             widget.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
-            widget.style.borderRadius = '8px';
+            widget.style.borderRadius = '20px';
             widget.style.backgroundColor = 'white';
             
             if (this.position === 'bottom-right') {
@@ -142,6 +142,13 @@ if (typeof window.DorableSurveyWidget === 'undefined') {
 
                 if (event.data.type === 'surveyLoaded') {
                     widget.style.display = 'block';
+                }
+
+                if (event.data.type === 'surveyAlreadyAnswered') {
+                    document.body.removeChild(widget);
+                    let answered_n_days_ago = event.data.answered_n_days_ago;
+                    let hideForNDays = this.hideForNDaysAfterSubmit - answered_n_days_ago;
+                    setStorageItem(`survey_${this.surveyId}_completed`, new Date().toISOString(), hideForNDays);
                 }
             });
             
