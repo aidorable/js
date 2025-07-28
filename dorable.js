@@ -87,8 +87,10 @@ if (typeof window.DorableSurveyWidget === 'undefined') {
             }else{
                 widgetUrl = `http://localhost:5173/survey/${this.surveyId}/widget?subdomain=${this.subdomain}`;
             }
-            
+
             if (this.userIdentifier) {
+                //replaces any & or ? from userIdentifier
+                this.userIdentifier = this.userIdentifier.replace(/&/g, '-').replace(/\?/g, '-');
                 widgetUrl += (widgetUrl.includes('?') ? '&' : '?') + `user_identifier=${encodeURIComponent(this.userIdentifier)}&hide_for_n_days_after_submit=${this.hideForNDaysAfterSubmit}`;
             }
             widget.src = widgetUrl;
